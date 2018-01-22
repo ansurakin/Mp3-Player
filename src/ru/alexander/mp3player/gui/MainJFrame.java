@@ -5,6 +5,7 @@
  */
 package ru.alexander.mp3player.gui;
 
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.DefaultListModel;
@@ -13,7 +14,8 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
-import ru.alexander.mp3player.entity.Mp3;
+import ru.alexander.mp3player.entity.MP3;
+import ru.alexander.mp3player.entity.MP3Player;
 import ru.alexander.mp3player.utils.FileUtils;
 import ru.alexander.mp3player.utils.Mp3FileFilter;
 import ru.alexander.mp3player.utils.SkinUtils;
@@ -31,6 +33,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private Mp3FileFilter mp3FileFilter = new Mp3FileFilter("mp3", "mp3 файлы");
     private DefaultListModel mp3ListModel = new DefaultListModel();
     private Mp3FileFilter playlistFileFilter = new Mp3FileFilter(PLAYLIST_FILE_EXTENSION, "файлы плейлистов");
+    private MP3Player player = new MP3Player();
     
     
 
@@ -61,8 +64,8 @@ public class MainJFrame extends javax.swing.JFrame {
         btnSelectNext = new javax.swing.JButton();
         btnSelectPrev = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        lstPlaylist = new javax.swing.JList<>();
-        tgbtnVolume = new javax.swing.JToggleButton();
+        lstPlayList = new javax.swing.JList<>();
+        tglbtnVolume = new javax.swing.JToggleButton();
         slideVolume = new javax.swing.JSlider();
         btnPrevSong = new javax.swing.JButton();
         btnPlaySong = new javax.swing.JButton();
@@ -149,29 +152,72 @@ public class MainJFrame extends javax.swing.JFrame {
             }
         });
 
-        lstPlaylist.setModel(this.mp3ListModel);
-        jScrollPane1.setViewportView(lstPlaylist);
+        lstPlayList.setModel(this.mp3ListModel);
+        lstPlayList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lstPlayListMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(lstPlayList);
 
-        tgbtnVolume.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/speaker.png"))); // NOI18N
-        tgbtnVolume.setToolTipText("Вкл./выкл. звук");
-        tgbtnVolume.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/mute.png"))); // NOI18N
+        tglbtnVolume.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/speaker.png"))); // NOI18N
+        tglbtnVolume.setToolTipText("Вкл./выкл. звук");
+        tglbtnVolume.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/mute.png"))); // NOI18N
+        tglbtnVolume.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tglbtnVolumeActionPerformed(evt);
+            }
+        });
 
+        slideVolume.setMaximum(200);
+        slideVolume.setMinorTickSpacing(5);
+        slideVolume.setSnapToTicks(true);
         slideVolume.setToolTipText("Громкость");
+        slideVolume.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                slideVolumeStateChanged(evt);
+            }
+        });
 
         btnPrevSong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/prev-icon.png"))); // NOI18N
         btnPrevSong.setToolTipText("Предыдущая песня");
+        btnPrevSong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPrevSongActionPerformed(evt);
+            }
+        });
 
         btnPlaySong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/Play.png"))); // NOI18N
         btnPlaySong.setToolTipText("Играть");
+        btnPlaySong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPlaySongActionPerformed(evt);
+            }
+        });
 
         btnPauseSong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/Pause-icon.png"))); // NOI18N
         btnPauseSong.setToolTipText("Пауза");
+        btnPauseSong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPauseSongActionPerformed(evt);
+            }
+        });
 
         btnStopSong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/stop-red-icon.png"))); // NOI18N
         btnStopSong.setToolTipText("Остановить песню");
+        btnStopSong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStopSongActionPerformed(evt);
+            }
+        });
 
         btnNextSong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/next-icon.png"))); // NOI18N
         btnNextSong.setToolTipText("Следующая песня");
+        btnNextSong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNextSongActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panelMainLayout = new javax.swing.GroupLayout(panelMain);
         panelMain.setLayout(panelMainLayout);
@@ -207,7 +253,7 @@ public class MainJFrame extends javax.swing.JFrame {
                                 .addComponent(btnNextSong, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(27, 27, 27))
                             .addGroup(panelMainLayout.createSequentialGroup()
-                                .addComponent(tgbtnVolume, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(tglbtnVolume, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(slideVolume, javax.swing.GroupLayout.PREFERRED_SIZE, 277, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE)))
@@ -231,7 +277,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelMainLayout.createSequentialGroup()
                         .addGap(5, 5, 5)
-                        .addComponent(tgbtnVolume, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(tglbtnVolume, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(panelMainLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(slideVolume, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -351,7 +397,7 @@ public class MainJFrame extends javax.swing.JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = this.fileChooser.getSelectedFiles();
             for (File file : selectedFiles) {
-                Mp3 mp3 = new Mp3(file.getName(), file.getPath());
+                MP3 mp3 = new MP3(file.getName(), file.getPath());
                 this.mp3ListModel.addElement(mp3);
             }
 
@@ -360,29 +406,29 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnAddSongActionPerformed
 
     private void btnDeleteSong2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteSong2ActionPerformed
-        int[] indexPlaylist = this.lstPlaylist.getSelectedIndices();
+        int[] indexPlaylist = this.lstPlayList.getSelectedIndices();
         if (indexPlaylist.length > 0) {
-            ArrayList<Mp3> mp3ListForDelete = new ArrayList<>();
+            ArrayList<MP3> mp3ListForDelete = new ArrayList<>();
             for (int i = 0; i < indexPlaylist.length; i++) {
-                mp3ListForDelete.add((Mp3) mp3ListModel.getElementAt(indexPlaylist[i]));
+                mp3ListForDelete.add((MP3) mp3ListModel.getElementAt(indexPlaylist[i]));
             }
-            for (Mp3 mp3 : mp3ListForDelete) {
+            for (MP3 mp3 : mp3ListForDelete) {
                 mp3ListModel.removeElement(mp3);
             }
         }
     }//GEN-LAST:event_btnDeleteSong2ActionPerformed
 
     private void btnSelectNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectNextActionPerformed
-        int nextItem = this.lstPlaylist.getSelectedIndex() + 1;
-        if (nextItem <= this.lstPlaylist.getModel().getSize() - 1) {
-            this.lstPlaylist.setSelectedIndex(nextItem);
+        int nextItem = this.lstPlayList.getSelectedIndex() + 1;
+        if (nextItem <= this.lstPlayList.getModel().getSize() - 1) {
+            this.lstPlayList.setSelectedIndex(nextItem);
         }
     }//GEN-LAST:event_btnSelectNextActionPerformed
 
     private void btnSelectPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectPrevActionPerformed
-        int nextItem = this.lstPlaylist.getSelectedIndex() - 1;
+        int nextItem = this.lstPlayList.getSelectedIndex() - 1;
         if (nextItem >= 0) {
-            this.lstPlaylist.setSelectedIndex(nextItem);
+            this.lstPlayList.setSelectedIndex(nextItem);
         }
     }//GEN-LAST:event_btnSelectPrevActionPerformed
 
@@ -423,7 +469,7 @@ public class MainJFrame extends javax.swing.JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {// если нажата клавиша OK или YES
             File selectedFile = fileChooser.getSelectedFile();// 
             this.mp3ListModel = (DefaultListModel) FileUtils.deserialize(selectedFile.getPath());
-            lstPlaylist.setModel(mp3ListModel);
+            lstPlayList.setModel(mp3ListModel);
         }
     }//GEN-LAST:event_menuOpenPlaylistActionPerformed
 
@@ -440,7 +486,7 @@ public class MainJFrame extends javax.swing.JFrame {
 
         // проходим по коллекции и ищем соответствия имен песен со строкой поиска
         for (int i = 0; i < mp3ListModel.size(); i++) {
-            Mp3 mp3 = (Mp3) mp3ListModel.getElementAt(i);
+            MP3 mp3 = (MP3) mp3ListModel.getElementAt(i);
             // поиск вхождения строки в название песни без учета регистра букв
             if (mp3.getName().toUpperCase().contains(searchStr.toUpperCase())) {
                 mp3FindedIndexes.add(i);// найденный индексы добавляем в коллекцию
@@ -463,8 +509,67 @@ public class MainJFrame extends javax.swing.JFrame {
         }
 
         // выделить в плелисте найдные песни по массиву индексов, найденных ранее
-        lstPlaylist.setSelectedIndices(selectIndexes);
+        lstPlayList.setSelectedIndices(selectIndexes);
     }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnPlaySongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPlaySongActionPerformed
+        int[] indexPlayList = lstPlayList.getSelectedIndices();// получаем выбранные индексы(порядковый номер) песен
+        if (indexPlayList.length > 0) {// если выбрали хотя бы одну песню
+            MP3 mp3 = (MP3) mp3ListModel.getElementAt(indexPlayList[0]);// находим первую выбранную песню (т.к. несколько песен нельзя проиграть одновременно
+            player.play(mp3.getPath());
+            player.setVolume(slideVolume.getValue(),slideVolume.getMaximum());
+        }
+    }//GEN-LAST:event_btnPlaySongActionPerformed
+
+    private void btnPauseSongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPauseSongActionPerformed
+        player.pause();
+    }//GEN-LAST:event_btnPauseSongActionPerformed
+
+    private void btnStopSongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopSongActionPerformed
+        player.stop();
+    }//GEN-LAST:event_btnStopSongActionPerformed
+
+    private void slideVolumeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_slideVolumeStateChanged
+        player.setVolume(slideVolume.getValue(),slideVolume.getMaximum());
+        
+        if (slideVolume.getValue()==0){
+            tglbtnVolume.setSelected(true);
+        }else {
+            tglbtnVolume.setSelected(false);
+        }
+    }//GEN-LAST:event_slideVolumeStateChanged
+
+    private void lstPlayListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lstPlayListMouseClicked
+        // если нажали левую кнопку мыши 2 раза
+        if (evt.getModifiers() == InputEvent.BUTTON1_MASK && evt.getClickCount() == 2) {
+            int[] indexPlayList = lstPlayList.getSelectedIndices();
+            if (indexPlayList.length > 0) {
+                MP3 mp3 = (MP3) mp3ListModel.getElementAt(indexPlayList[0]);
+                player.play(mp3.getPath());
+                player.setVolume(slideVolume.getValue(),slideVolume.getMaximum());
+            }
+        }
+    }//GEN-LAST:event_lstPlayListMouseClicked
+
+    private int currentVolumeValue;
+    private void tglbtnVolumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tglbtnVolumeActionPerformed
+        if (tglbtnVolume.isSelected()){
+            currentVolumeValue = slideVolume.getValue();
+            slideVolume.setValue(0);
+        }else{
+            slideVolume.setValue(currentVolumeValue);
+        }
+    }//GEN-LAST:event_tglbtnVolumeActionPerformed
+
+    private void btnPrevSongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrevSongActionPerformed
+        btnSelectPrevActionPerformed(evt);
+        btnPlaySongActionPerformed(evt);
+    }//GEN-LAST:event_btnPrevSongActionPerformed
+
+    private void btnNextSongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNextSongActionPerformed
+        btnSelectNextActionPerformed(evt);
+        btnPlaySongActionPerformed(evt);
+    }//GEN-LAST:event_btnNextSongActionPerformed
 
      private void txtSearchFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtSearchFocusGained
         if (txtSearch.getText().equals(INPUT_SONG_NAME)) {
@@ -530,7 +635,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JList<String> lstPlaylist;
+    private javax.swing.JList<String> lstPlayList;
     private javax.swing.JMenu menuChangeSkin;
     private javax.swing.JMenuItem menuExit;
     private javax.swing.JMenu menuFile;
@@ -543,7 +648,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JPanel panelMain;
     private javax.swing.JPanel panelSearch;
     private javax.swing.JSlider slideVolume;
-    private javax.swing.JToggleButton tgbtnVolume;
+    private javax.swing.JToggleButton tglbtnVolume;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }
