@@ -5,13 +5,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javazoom.jlgui.basicplayer.BasicPlayer;
 import javazoom.jlgui.basicplayer.BasicPlayerException;
+import javazoom.jlgui.basicplayer.BasicPlayerListener;
 
 public class MP3Player {
 
     private BasicPlayer player = new BasicPlayer();
-
     private String currentFileName;// текущая песня
     private double currentVolumeValue;// текущий уровень звука
+
+   
+    public MP3Player(BasicPlayerListener listener) {
+        player.addBasicPlayerListener(listener);
+    }
 
     public void play(String fileName) {
 
@@ -22,8 +27,10 @@ public class MP3Player {
                 return;
             }
 
+            File mp3File = new File(fileName);
+
             currentFileName = fileName;
-            player.open(new File(fileName));
+            player.open(mp3File);
             player.play();
             player.setGain(currentVolumeValue);// устанавливаем уровень звука
 
@@ -70,9 +77,10 @@ public class MP3Player {
         return currentVolumeValue;
     }
 
-    public void seek(long l) {
+    public void jump(long bytes) {
         try {
-            player.seek(1028469);
+            player.seek(bytes);
+            player.setGain(currentVolumeValue);// устанавливаем уровень звука
         } catch (BasicPlayerException ex) {
             Logger.getLogger(MP3Player.class.getName()).log(Level.SEVERE, null, ex);
         }
