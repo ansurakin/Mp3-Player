@@ -109,6 +109,7 @@ public class MainJFrame extends javax.swing.JFrame implements BasicPlayerListene
         popmenu.add(popmenuAddSong);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         btnSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/search_16.png"))); // NOI18N
         btnSearch.setText("Найти");
@@ -333,7 +334,7 @@ public class MainJFrame extends javax.swing.JFrame implements BasicPlayerListene
                     .addGroup(panelMainLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(slideVolume, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
                 .addGroup(panelMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnPrevSong)
                     .addComponent(btnPlaySong)
