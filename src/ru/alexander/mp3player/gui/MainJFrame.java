@@ -5,8 +5,17 @@
  */
 package ru.alexander.mp3player.gui;
 
+import java.io.File;
+import java.util.ArrayList;
+import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+import ru.alexander.mp3player.entity.Mp3;
+import ru.alexander.mp3player.utils.FileUtils;
+import ru.alexander.mp3player.utils.Mp3FileFilter;
 import ru.alexander.mp3player.utils.SkinUtils;
 
 /**
@@ -14,6 +23,16 @@ import ru.alexander.mp3player.utils.SkinUtils;
  * @author Alex
  */
 public class MainJFrame extends javax.swing.JFrame {
+
+    private static final String PLAYLIST_FILE_EXTENSION = "pls";
+    private static final String EMPTY_STRING = "";
+    private static final String INPUT_SONG_NAME = "Введите имя песни";
+
+    private Mp3FileFilter mp3FileFilter = new Mp3FileFilter("mp3", "mp3 файлы");
+    private DefaultListModel mp3ListModel = new DefaultListModel();
+    private Mp3FileFilter playlistFileFilter = new Mp3FileFilter(PLAYLIST_FILE_EXTENSION, "файлы плейлистов");
+    
+    
 
     /**
      * Creates new form MainJFrame
@@ -31,6 +50,7 @@ public class MainJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        fileChooser = new javax.swing.JFileChooser();
         panelSearch = new javax.swing.JPanel();
         txtSearch = new javax.swing.JTextField();
         btnSearch = new javax.swing.JButton();
@@ -61,12 +81,18 @@ public class MainJFrame extends javax.swing.JFrame {
         menuSkin1 = new javax.swing.JMenuItem();
         menuSkin2 = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setMultiSelectionEnabled(true);
 
-        txtSearch.setText("Введите имя песни");
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         btnSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/search_16.png"))); // NOI18N
         btnSearch.setText("Найти");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panelSearchLayout = new javax.swing.GroupLayout(panelSearch);
         panelSearch.setLayout(panelSearchLayout);
@@ -91,23 +117,39 @@ public class MainJFrame extends javax.swing.JFrame {
 
         btnAddSong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/plus_16.png"))); // NOI18N
         btnAddSong.setToolTipText("Добавить песню");
+        btnAddSong.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddSongActionPerformed(evt);
+            }
+        });
 
         btnDeleteSong2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/remove_icon.png"))); // NOI18N
         btnDeleteSong2.setToolTipText("Удалить песню");
+        btnDeleteSong2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteSong2ActionPerformed(evt);
+            }
+        });
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
         btnSelectNext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/arrow-down-icon.png"))); // NOI18N
         btnSelectNext.setToolTipText("Выбрать следующую");
+        btnSelectNext.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSelectNextActionPerformed(evt);
+            }
+        });
 
         btnSelectPrev.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/arrow-up-icon.png"))); // NOI18N
         btnSelectPrev.setToolTipText("Выбрать предыдущую");
-
-        lstPlaylist.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        btnSelectPrev.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSelectPrevActionPerformed(evt);
+            }
         });
+
+        lstPlaylist.setModel(this.mp3ListModel);
         jScrollPane1.setViewportView(lstPlaylist);
 
         tgbtnVolume.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/speaker.png"))); // NOI18N
@@ -209,10 +251,20 @@ public class MainJFrame extends javax.swing.JFrame {
 
         menuOpenPlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/open-icon.png"))); // NOI18N
         menuOpenPlaylist.setLabel("Открыть плейлист");
+        menuOpenPlaylist.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuOpenPlaylistActionPerformed(evt);
+            }
+        });
         menuFile.add(menuOpenPlaylist);
 
         menuSavePlaylist.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ru/alexander/mp3player/images/save_16.png"))); // NOI18N
         menuSavePlaylist.setLabel("Сохранить плейлист");
+        menuSavePlaylist.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuSavePlaylistActionPerformed(evt);
+            }
+        });
         menuFile.add(menuSavePlaylist);
         menuFile.add(menuSeparator);
 
@@ -279,17 +331,153 @@ public class MainJFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuExitActionPerformed
-        
+        System.exit(0);
     }//GEN-LAST:event_menuExitActionPerformed
 
     private void menuSkin1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuSkin1ActionPerformed
         SkinUtils.changeSkin(this, UIManager.getSystemLookAndFeelClassName());
+        fileChooser.updateUI();
     }//GEN-LAST:event_menuSkin1ActionPerformed
 
     private void menuSkin2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuSkin2ActionPerformed
         SkinUtils.changeSkin(this, new NimbusLookAndFeel());
+        fileChooser.updateUI();
     }//GEN-LAST:event_menuSkin2ActionPerformed
 
+    private void btnAddSongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSongActionPerformed
+        FileUtils.addFileFilter(this.fileChooser, this.mp3FileFilter);
+        int result = this.fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File[] selectedFiles = this.fileChooser.getSelectedFiles();
+            for (File file : selectedFiles) {
+                Mp3 mp3 = new Mp3(file.getName(), file.getPath());
+                this.mp3ListModel.addElement(mp3);
+            }
+
+        }
+
+    }//GEN-LAST:event_btnAddSongActionPerformed
+
+    private void btnDeleteSong2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteSong2ActionPerformed
+        int[] indexPlaylist = this.lstPlaylist.getSelectedIndices();
+        if (indexPlaylist.length > 0) {
+            ArrayList<Mp3> mp3ListForDelete = new ArrayList<>();
+            for (int i = 0; i < indexPlaylist.length; i++) {
+                mp3ListForDelete.add((Mp3) mp3ListModel.getElementAt(indexPlaylist[i]));
+            }
+            for (Mp3 mp3 : mp3ListForDelete) {
+                mp3ListModel.removeElement(mp3);
+            }
+        }
+    }//GEN-LAST:event_btnDeleteSong2ActionPerformed
+
+    private void btnSelectNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectNextActionPerformed
+        int nextItem = this.lstPlaylist.getSelectedIndex() + 1;
+        if (nextItem <= this.lstPlaylist.getModel().getSize() - 1) {
+            this.lstPlaylist.setSelectedIndex(nextItem);
+        }
+    }//GEN-LAST:event_btnSelectNextActionPerformed
+
+    private void btnSelectPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectPrevActionPerformed
+        int nextItem = this.lstPlaylist.getSelectedIndex() - 1;
+        if (nextItem >= 0) {
+            this.lstPlaylist.setSelectedIndex(nextItem);
+        }
+    }//GEN-LAST:event_btnSelectPrevActionPerformed
+
+    private void menuSavePlaylistActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuSavePlaylistActionPerformed
+        FileUtils.addFileFilter(this.fileChooser, this.playlistFileFilter);
+        int result = this.fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            if (selectedFile.exists()) {// если такой файл уже существует
+                int resultOvveride = JOptionPane.showConfirmDialog(this, "Файл существует", "Перезаписать?", JOptionPane.YES_NO_CANCEL_OPTION);
+                switch (resultOvveride) {
+                    case JOptionPane.NO_OPTION:
+                        menuSavePlaylistActionPerformed(evt);// повторно открыть окно сохранения файла
+                        return;
+                    case JOptionPane.CANCEL_OPTION:
+                        fileChooser.cancelSelection();
+                        return;
+                }
+                fileChooser.approveSelection();
+            }
+
+            String fileExtension = FileUtils.getFileExtension(selectedFile);
+
+            // имя файла (нужно ли добавлять раширение к имени файлу при сохранении)
+            String fileNameForSave = (fileExtension != null && fileExtension.equals(PLAYLIST_FILE_EXTENSION)) ? selectedFile.getPath() : selectedFile.getPath() + "." + PLAYLIST_FILE_EXTENSION;
+
+            FileUtils.serialize(mp3ListModel, fileNameForSave);
+        }
+
+    }//GEN-LAST:event_menuSavePlaylistActionPerformed
+
+    private void menuOpenPlaylistActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuOpenPlaylistActionPerformed
+        FileUtils.addFileFilter(fileChooser, playlistFileFilter);
+        int result = fileChooser.showOpenDialog(this);// result хранит результат: выбран файл или нет
+
+        if (result == JFileChooser.APPROVE_OPTION) {// если нажата клавиша OK или YES
+            File selectedFile = fileChooser.getSelectedFile();// 
+            this.mp3ListModel = (DefaultListModel) FileUtils.deserialize(selectedFile.getPath());
+            lstPlaylist.setModel(mp3ListModel);
+        }
+    }//GEN-LAST:event_menuOpenPlaylistActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String searchStr = txtSearch.getText();
+
+        // если в поиске ничего не ввели - выйти из метода и не производить поиск
+        if (searchStr == null || searchStr.trim().equals(EMPTY_STRING)) {
+            return;
+        }
+
+        // все индексы объектов, найденных по поиску, будут храниться в коллекции
+        ArrayList<Integer> mp3FindedIndexes = new ArrayList<>();
+
+        // проходим по коллекции и ищем соответствия имен песен со строкой поиска
+        for (int i = 0; i < mp3ListModel.size(); i++) {
+            Mp3 mp3 = (Mp3) mp3ListModel.getElementAt(i);
+            // поиск вхождения строки в название песни без учета регистра букв
+            if (mp3.getName().toUpperCase().contains(searchStr.toUpperCase())) {
+                mp3FindedIndexes.add(i);// найденный индексы добавляем в коллекцию
+            }
+        }
+
+        // коллекцию индексов сохраняем в массив
+        int[] selectIndexes = new int[mp3FindedIndexes.size()];
+
+        if (selectIndexes.length == 0) {// если не найдено ни одной песни, удовлетворяющей условию поиска
+            JOptionPane.showMessageDialog(this, "Поиск по строке \'" + searchStr + "\' не дал результатов");
+            txtSearch.requestFocus();
+            txtSearch.selectAll();
+            return;
+        }
+
+        // преобразовать коллекцию в массив, т.к. метод для выделения строк в JList работает только с массивом
+        for (int i = 0; i < selectIndexes.length; i++) {
+            selectIndexes[i] = mp3FindedIndexes.get(i);
+        }
+
+        // выделить в плелисте найдные песни по массиву индексов, найденных ранее
+        lstPlaylist.setSelectedIndices(selectIndexes);
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+     private void txtSearchFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtSearchFocusGained
+        if (txtSearch.getText().equals(INPUT_SONG_NAME)) {
+            txtSearch.setText(EMPTY_STRING);
+        }
+    }//GEN-LAST:event_txtSearchFocusGained
+
+    private void txtSearchFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtSearchFocusLost
+        if (txtSearch.getText().trim().equals(EMPTY_STRING)) {
+            txtSearch.setText(INPUT_SONG_NAME);
+        }
+    }//GEN-LAST:event_txtSearchFocusLost
+    
     /**
      * @param args the command line arguments
      */
@@ -319,6 +507,7 @@ public class MainJFrame extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new MainJFrame().setVisible(true);
             }
@@ -336,6 +525,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnSelectNext;
     private javax.swing.JButton btnSelectPrev;
     private javax.swing.JButton btnStopSong;
+    private javax.swing.JFileChooser fileChooser;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
